@@ -21,7 +21,6 @@ namespace Blogifier.Core.Data
         public string Email { get; set; }
         [StringLength(80)]
         public string Ip { get; set; }
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime Created { get; set; }
     }
 

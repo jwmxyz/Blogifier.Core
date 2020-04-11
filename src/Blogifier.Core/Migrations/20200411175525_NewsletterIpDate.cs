@@ -10,8 +10,7 @@ namespace Blogifier.Core.Migrations
             migrationBuilder.AddColumn<DateTime>(
                 name: "Created",
                 table: "Newsletters",
-                nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Ip",
