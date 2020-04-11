@@ -18,8 +18,8 @@ namespace Blogifier.Core.Services
     {
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
-        IStorageService _storage;
-        IDataService _db;
+        private readonly IStorageService _storage;
+        private readonly IDataService _db;
 
         public SendGridService(IDataService db, IConfiguration config, ILogger<SendGridService> logger, IStorageService storage)
         {
