@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Blogifier.Core.Data
 {
@@ -17,6 +19,10 @@ namespace Blogifier.Core.Data
     {
         public int Id { get; set; }
         public string Email { get; set; }
+        [StringLength(80)]
+        public string Ip { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime Created { get; set; }
     }
 
     public enum AlertType
