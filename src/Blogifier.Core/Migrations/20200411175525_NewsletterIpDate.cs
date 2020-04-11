@@ -7,10 +7,6 @@ namespace Blogifier.Core.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AppUserId",
-                table: "Authors");
-
             migrationBuilder.AddColumn<DateTime>(
                 name: "Created",
                 table: "Newsletters",
@@ -34,11 +30,6 @@ namespace Blogifier.Core.Migrations
                 name: "Ip",
                 table: "Newsletters");
 
-            migrationBuilder.AddColumn<string>(
-                name: "AppUserId",
-                table: "Authors",
-                maxLength: 160,
-                nullable: true);
         }
     }
 }
