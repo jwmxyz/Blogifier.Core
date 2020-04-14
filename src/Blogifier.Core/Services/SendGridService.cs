@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,8 +11,8 @@ namespace Blogifier.Core.Services
 {
     public interface IEmailService
     {
-        Task SendNewsletters(BlogPost postItem, List<string> emails, string siteUrl);
-        Task SendEmail(string to, string subject, string content);
+        Task<int> SendNewsletters(BlogPost postItem, List<string> emails, string siteUrl);
+        Task<bool> SendEmail(string to, string subject, string content);
     }
 
     public class SendGridService : IEmailService
@@ -29,33 +30,47 @@ namespace Blogifier.Core.Services
             _storage = storage;
         }
 
-        public async Task SendNewsletters(BlogPost post, List<string> emails, string siteUrl)
+        public async Task<int> SendNewsletters(BlogPost post, List<string> emails, string siteUrl)
         {
-            var blog = await _db.CustomFields.GetBlogSettings();
-            var author = _db.Authors.Single(a => a.Id == post.AuthorId);
-            foreach (var email in emails)
+            int sendCount = 0;
+            try
             {
-                var subject = post.Title;
-                var content = _storage.GetHtmlTemplate("newsletter");
+                var blog = await _db.CustomFields.GetBlogSettings();
+                var author = _db.Authors.Single(a => a.Id == post.AuthorId);
 
-                var htmlContent = string.Format(content,
-                    blog.Title, // 0
-                    blog.Logo,  // 1
-                    blog.Cover, // 2
-                    post.Title, // 3
-                    post.Description, // 4 
-                    post.Content, // 5
-                    post.Slug, // 6
-                    post.Published, // 7 
-                    post.Cover, // 8
-                    author.DisplayName, // 9
-                    siteUrl); // 10
+                foreach (var email in emails)
+                {
+                    var subject = post.Title;
+                    var content = _storage.GetHtmlTemplate("newsletter") ?? "<p>{3}</p>";
 
-                await SendEmail(email, subject, htmlContent);
+                    var htmlContent = string.Format(content,
+                        blog.Title, // 0
+                        blog.Logo,  // 1
+                        blog.Cover, // 2
+                        post.Title, // 3
+                        post.Description, // 4 
+                        post.Content, // 5
+                        post.Slug, // 6
+                        post.Published, // 7 
+                        post.Cover, // 8
+                        author.DisplayName, // 9
+                        siteUrl); // 10
+
+                    if (await SendEmail(email, subject, htmlContent))
+                    {
+                        sendCount++;
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+            
+            return sendCount;
         }
 
-        public async Task SendEmail(string to, string subject, string content)
+        public async Task<bool> SendEmail(string to, string subject, string content)
         {
             var section = _config.GetSection(Constants.ConfigSectionKey);
 
@@ -79,16 +94,23 @@ namespace Blogifier.Core.Services
                         if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
                             _logger.LogError("SendGrid service returned 'Unauthorized' - please verfiy SendGrid API key in configuration file");
+                            return false;
                         }
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
                         _logger.LogError(ex.Message);
+                        return false;
                     }
                 }
-                
+                else
+                {
+                    _logger.LogError("Email sevice is not configured");
+                    return false;
+                }
             }
             await Task.CompletedTask;
+            return true;
         }
     }
 }

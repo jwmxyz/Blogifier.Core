@@ -20,9 +20,9 @@ namespace Core.Tests.Services
         {
             var sut = GetSut();
 
-            await sut.SendEmail(email, "test", "testing blogifier");
+            bool expected = await sut.SendEmail(email, "test", "testing blogifier");
 
-            Assert.NotNull(sut);
+            Assert.False(expected);
         }
 
         [Fact]
@@ -42,9 +42,9 @@ namespace Core.Tests.Services
                 AuthorId = 1
             };
 
-            await sut.SendNewsletters(post, emails, "http://blogifier.net");
+            int expected = await sut.SendNewsletters(post, emails, "http://blogifier.net");
 
-            Assert.NotNull(sut);
+            Assert.Equal(0, expected);
         }
 
         private SendGridService GetSut()
