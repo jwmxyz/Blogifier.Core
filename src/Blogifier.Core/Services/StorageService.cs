@@ -43,13 +43,10 @@ namespace Blogifier.Core.Services
 
     public class StorageService : IStorageService
     {
-        private string _blogSlug;
+        private readonly string _blogSlug;
         private readonly string _separator = Path.DirectorySeparatorChar.ToString();
         private readonly string _uploadFolder = "data";
         private readonly string _thumbs = "thumbs";
-        private readonly int _thumbWidth = 432;
-        private readonly int _thumbHeight = 200;
-        private readonly IHttpContextAccessor _httpContext;
         private readonly ILogger _logger;
 
         public StorageService(IHttpContextAccessor httpContext, ILogger<StorageService> logger)
@@ -63,7 +60,6 @@ namespace Blogifier.Core.Services
                 _blogSlug = httpContext.HttpContext.User.Identity.Name;
             }
             
-            _httpContext = httpContext;
             _logger = logger;
 
             if (!Directory.Exists(Location))
@@ -363,13 +359,13 @@ namespace Blogifier.Core.Services
             {
                 Image image = Image.FromStream(resourceImage);
 
-                if (image.Width < _thumbHeight)
+                if (image.Width < AppSettings.ThumbWidth)
                     return false;
 
                 if (!Directory.Exists(thumbFolder))
                     Directory.CreateDirectory(thumbFolder);
 
-                Image thumb = image.GetThumbnailImage(_thumbWidth, _thumbHeight, () => false, IntPtr.Zero);
+                Image thumb = image.GetThumbnailImage(AppSettings.ThumbWidth, AppSettings.ThumbHeight, () => false, IntPtr.Zero);
                 thumb.Save(Path.Combine(thumbFolder, fileName));
                 return true;
             }

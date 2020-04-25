@@ -13,5 +13,14 @@ namespace Blogifier.Core.Tests.Extensions
         {
             Assert.Equal(title.ToSlug(), slug);
         }
+
+        [Theory]
+        [InlineData("http://foo/bar/img.jpg", "http://foo/bar/thumbs/img.jpg")]
+        [InlineData("foo/bar//img-foo.jpg", "foo/bar//thumbs/img-foo.jpg")]
+        [InlineData("foo/bar/img.one.png", "foo/bar/thumbs/img.one.png")]
+        public void ShouldConvertImgPathToTumbPath(string img, string thumb)
+        {
+            Assert.Equal(img.ToThumb(), thumb);
+        }
     }
 }
