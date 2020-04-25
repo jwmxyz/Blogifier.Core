@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -42,11 +43,13 @@ namespace Blogifier.Core.Services
 
     public class StorageService : IStorageService
     {
-        string _blogSlug;
-        string _separator = Path.DirectorySeparatorChar.ToString();
-        string _uploadFolder = "data";
-        IHttpContextAccessor _httpContext;
-
+        private string _blogSlug;
+        private readonly string _separator = Path.DirectorySeparatorChar.ToString();
+        private readonly string _uploadFolder = "data";
+        private readonly string _thumbs = "thumbs";
+        private readonly int _thumbWidth = 432;
+        private readonly int _thumbHeight = 200;
+        private readonly IHttpContextAccessor _httpContext;
         private readonly ILogger _logger;
 
         public StorageService(IHttpContextAccessor httpContext, ILogger<StorageService> logger)
@@ -257,10 +260,17 @@ namespace Blogifier.Core.Services
             var filePath = string.IsNullOrEmpty(path) ?
                 Path.Combine(Location, fileName) :
                 Path.Combine(Location, path + _separator + fileName);
+            var thumbFolder = string.IsNullOrEmpty(path) ?
+                Path.Combine(Location, _thumbs) :
+                Path.Combine(Location, $"{path}{_separator}{_thumbs}");
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
+
+                Stream stream = file.OpenReadStream();
+                SaveThumbnail(stream, thumbFolder, fileName);
+
                 return new AssetItem
                 {
                     Title = fileName,
@@ -321,6 +331,9 @@ namespace Blogifier.Core.Services
             var filePath = string.IsNullOrEmpty(path) ?
                 Path.Combine(Location, fileName) :
                 Path.Combine(Location, path + _separator + fileName);
+            var thumbFolder = string.IsNullOrEmpty(path) ?
+                Path.Combine(Location, _thumbs) :
+                Path.Combine(Location, $"{path}{_separator}{_thumbs}");
 
             using (var client = new HttpClient())
             {
@@ -331,6 +344,8 @@ namespace Blogifier.Core.Services
                         stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 3145728, true))
                     {
                         await contentStream.CopyToAsync(stream);
+                        SaveThumbnail(contentStream, thumbFolder, fileName);
+
                         return new AssetItem
                         {
                             Title = fileName,
@@ -339,6 +354,29 @@ namespace Blogifier.Core.Services
                         };
                     }
                 }
+            }
+        }
+
+        public bool SaveThumbnail(Stream resourceImage, string thumbFolder, string fileName)
+        {
+            try
+            {
+                Image image = Image.FromStream(resourceImage);
+
+                if (image.Width < _thumbHeight)
+                    return false;
+
+                if (!Directory.Exists(thumbFolder))
+                    Directory.CreateDirectory(thumbFolder);
+
+                Image thumb = image.GetThumbnailImage(_thumbWidth, _thumbHeight, () => false, IntPtr.Zero);
+                thumb.Save(Path.Combine(thumbFolder, fileName));
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return false;
             }
         }
 

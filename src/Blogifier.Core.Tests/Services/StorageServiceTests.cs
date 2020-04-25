@@ -12,8 +12,8 @@ namespace Core.Tests.Services
     public class StorageServiceTests
     {
         IStorageService _storage;
-        static string _img = "picasa.png";
-        static Uri _uri1 = new Uri("http://dnbe.net/v01/images/" + _img);
+        static string _img = "cover.png";
+        static Uri _uri1 = new Uri("http://blogifier.net/admin/img/" + _img);
         static Uri _uri2 = new Uri("http://dnbe.net/v01/images/mp3player.png");
         static string _separator = System.IO.Path.DirectorySeparatorChar.ToString();
         private readonly Mock<ILogger<StorageService>> _logger = new Mock<ILogger<StorageService>>();
