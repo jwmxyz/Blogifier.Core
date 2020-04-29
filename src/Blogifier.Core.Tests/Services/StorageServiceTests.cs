@@ -1,4 +1,5 @@
 ﻿using Blogifier.Core;
+using Blogifier.Core.Data;
 using Blogifier.Core.Helpers;
 using Blogifier.Core.Services;
 using Microsoft.Extensions.Logging;
@@ -96,6 +97,38 @@ namespace Core.Tests.Services
 
             _storage.DeleteFolder(folder);
             Assert.False(System.IO.Directory.Exists(folder));
+        }
+
+        [Theory]
+        [InlineData("http://blogifier.net/admin/img/cover.png")]
+        [InlineData("https://raw.githubusercontent.com/blogifierdotnet/Design/master/v1.5/01.jpg")]
+        public async Task CanCreateCoverImagesWithThumbnails(string img)
+        {
+            AssetItem result = await _storage.UploadFromWeb(new Uri(img), "/");
+            Assert.True(System.IO.File.Exists(result.Path));
+
+            string thumbPath = result.Path.Replace(result.Title, $"thumbs\\{result.Title}");
+            Assert.True(System.IO.File.Exists(thumbPath));
+
+            _storage.DeleteFile(result.Title);
+            Assert.False(System.IO.File.Exists(result.Path));
+
+            _storage.DeleteFile(thumbPath);
+            Assert.False(System.IO.File.Exists(thumbPath));
+        }
+
+        [Theory]
+        [InlineData("http://blogifier.net/admin/img/avatar.png")]
+        public async Task SmallImagesShouldNotCreateThumbnails(string img)
+        {
+            AssetItem result = await _storage.UploadFromWeb(new Uri(img), "/");
+            Assert.True(System.IO.File.Exists(result.Path));
+
+            string thumbPath = result.Path.Replace(result.Title, $"thumbs\\{result.Title}");
+            Assert.False(System.IO.File.Exists(thumbPath));
+
+            _storage.DeleteFile(result.Title);
+            Assert.False(System.IO.File.Exists(result.Path));
         }
     }
 }

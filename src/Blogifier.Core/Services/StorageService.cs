@@ -367,13 +367,9 @@ namespace Blogifier.Core.Services
 
                 Image thumb = image.GetThumbnailImage(AppSettings.ThumbWidth, AppSettings.ThumbHeight, () => false, IntPtr.Zero);
                 thumb.Save(Path.Combine(thumbFolder, fileName));
-                return true;
+                return true;    
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                return false;
-            }
+            catch { return false; }
         }
 
         public async Task<IEnumerable<AssetItem>> Find(Func<AssetItem, bool> predicate, Pager pager, string path = "", bool sanitize = false)
