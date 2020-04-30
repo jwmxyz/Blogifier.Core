@@ -15,7 +15,6 @@ namespace Blogifier.Core.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Ip",
                 table: "Newsletters",
-                maxLength: 80,
                 nullable: true);
         }
 
