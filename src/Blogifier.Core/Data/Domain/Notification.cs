@@ -19,7 +19,6 @@ namespace Blogifier.Core.Data
     {
         public int Id { get; set; }
         public string Email { get; set; }
-        [StringLength(80)]
         public string Ip { get; set; }
         public DateTime Created { get; set; }
     }

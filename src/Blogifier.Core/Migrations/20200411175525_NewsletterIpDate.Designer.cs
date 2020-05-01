@@ -220,9 +220,9 @@ namespace Blogifier.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("Created")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("TEXT");
+                    //b.Property<DateTime>("Created")
+                    //    .ValueGeneratedOnAddOrUpdate()
+                    //    .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
