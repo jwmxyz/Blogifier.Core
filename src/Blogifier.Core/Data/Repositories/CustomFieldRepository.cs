@@ -1,102 +1,129 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Blogifier.Core.Data
 {
-    public interface ICustomFieldRepository : IRepository<CustomField>
-    {
-        Task<BlogItem> GetBlogSettings();
-        Task SaveBlogSettings(BlogItem blog);
+	public interface ICustomFieldRepository : IRepository<CustomField>
+	{
+		Task<BlogItem> GetBlogSettings();
+		Task SaveBlogSettings(BlogItem blog);
 
-        string GetCustomValue(string name);
-        Task SaveCustomValue(string name, string value);
-    }
+		string GetCustomValue(string name);
+		Task SaveCustomValue(string name, string value);
 
-    public class CustomFieldRepository : Repository<CustomField>, ICustomFieldRepository
-    {
-        AppDbContext _db;
+		Task<List<SocialField>> GetSocial(int authorId = 0);
+	}
 
-        public CustomFieldRepository(AppDbContext db) : base(db)
-        {
-            _db = db;
-        }
+	public class CustomFieldRepository : Repository<CustomField>, ICustomFieldRepository
+	{
+		AppDbContext _db;
 
-        public Task<BlogItem> GetBlogSettings()
-        {
-            var blog = new BlogItem();
-            CustomField title, desc, items, cover, logo, theme, culture;
+		public CustomFieldRepository(AppDbContext db) : base(db)
+		{
+			_db = db;
+		}
 
-            title = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTitle).FirstOrDefault();
-            desc = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogDescription).FirstOrDefault();
-            items = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogItemsPerPage).FirstOrDefault();
-            cover = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogCover).FirstOrDefault();
-            logo = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogLogo).FirstOrDefault();
-            theme = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTheme).FirstOrDefault();
-            culture = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.Culture).FirstOrDefault();
+		public Task<BlogItem> GetBlogSettings()
+		{
+			var blog = new BlogItem();
+			CustomField title, desc, items, cover, logo, theme, culture;
 
-            blog.Title = title == null ? "Blog Title" : title.Content;
-            blog.Description = desc == null ? "Short blog description" : desc.Content;
-            blog.ItemsPerPage = items == null ? 10 : int.Parse(items.Content);
-            blog.Cover = cover == null ? "admin/img/cover.png" : cover.Content;
-            blog.Logo = logo == null ? "admin/img/logo-white.png" : logo.Content;
-            blog.Theme = theme == null ? "Standard" : theme.Content;
-            blog.Culture = culture == null ? "en-US" : culture.Content;
+			title = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTitle).FirstOrDefault();
+			desc = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogDescription).FirstOrDefault();
+			items = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogItemsPerPage).FirstOrDefault();
+			cover = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogCover).FirstOrDefault();
+			logo = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogLogo).FirstOrDefault();
+			theme = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTheme).FirstOrDefault();
+			culture = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.Culture).FirstOrDefault();
 
-            return Task.FromResult(blog);
-        }
+			blog.Title = title == null ? "Blog Title" : title.Content;
+			blog.Description = desc == null ? "Short blog description" : desc.Content;
+			blog.ItemsPerPage = items == null ? 10 : int.Parse(items.Content);
+			blog.Cover = cover == null ? "admin/img/cover.png" : cover.Content;
+			blog.Logo = logo == null ? "admin/img/logo-white.png" : logo.Content;
+			blog.Theme = theme == null ? "Standard" : theme.Content;
+			blog.Culture = culture == null ? "en-US" : culture.Content;
 
-        public async Task SaveBlogSettings(BlogItem blog)
-        {
-            var title = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTitle).FirstOrDefault();
-            var desc = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogDescription).FirstOrDefault();
-            var items = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogItemsPerPage).FirstOrDefault();
-            var cover = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogCover).FirstOrDefault();
-            var logo = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogLogo).FirstOrDefault();
-            var culture = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.Culture).FirstOrDefault();
-            var theme = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTheme).FirstOrDefault();
+			return Task.FromResult(blog);
+		}
 
-            if (title == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogTitle, Content = blog.Title });
-            else title.Content = blog.Title;
+		public async Task SaveBlogSettings(BlogItem blog)
+		{
+			var title = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTitle).FirstOrDefault();
+			var desc = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogDescription).FirstOrDefault();
+			var items = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogItemsPerPage).FirstOrDefault();
+			var cover = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogCover).FirstOrDefault();
+			var logo = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogLogo).FirstOrDefault();
+			var culture = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.Culture).FirstOrDefault();
+			var theme = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTheme).FirstOrDefault();
 
-            if (desc == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogDescription, Content = blog.Description });
-            else desc.Content = blog.Description;
+			if (title == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogTitle, Content = blog.Title });
+			else title.Content = blog.Title;
 
-            if (items == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogItemsPerPage, Content = blog.ItemsPerPage.ToString() });
-            else items.Content = blog.ItemsPerPage.ToString();
+			if (desc == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogDescription, Content = blog.Description });
+			else desc.Content = blog.Description;
 
-            if (cover == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogCover, Content = blog.Cover });
-            else cover.Content = blog.Cover;
+			if (items == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogItemsPerPage, Content = blog.ItemsPerPage.ToString() });
+			else items.Content = blog.ItemsPerPage.ToString();
 
-            if (logo == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogLogo, Content = blog.Logo });
-            else logo.Content = blog.Logo;
+			if (cover == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogCover, Content = blog.Cover });
+			else cover.Content = blog.Cover;
 
-            if (culture == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.Culture, Content = blog.Culture });
-            else culture.Content = blog.Culture;
+			if (logo == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogLogo, Content = blog.Logo });
+			else logo.Content = blog.Logo;
 
-            if (theme == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogTheme, Content = blog.Theme });
-            else theme.Content = blog.Theme;
+			if (culture == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.Culture, Content = blog.Culture });
+			else culture.Content = blog.Culture;
 
-            await _db.SaveChangesAsync();
-        }
+			if (theme == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogTheme, Content = blog.Theme });
+			else theme.Content = blog.Theme;
 
-        public string GetCustomValue(string name)
-        {
-            var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
-            return field == null ? "" : field.Content;
-        }
+			await _db.SaveChangesAsync();
+		}
 
-        public async Task SaveCustomValue(string name, string value)
-        {
-            var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
-            if(field == null)
-            {
-                _db.CustomFields.Add(new CustomField { Name = name, Content = value, AuthorId = 0 });
-            }
-            else
-            {
-                field.Content = value;
-            }
-            await _db.SaveChangesAsync();
-        }
-    }
+		public string GetCustomValue(string name)
+		{
+			var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
+			return field == null ? "" : field.Content;
+		}
+
+		public async Task SaveCustomValue(string name, string value)
+		{
+			var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
+			if (field == null)
+			{
+				_db.CustomFields.Add(new CustomField { Name = name, Content = value, AuthorId = 0 });
+			}
+			else
+			{
+				field.Content = value;
+			}
+			await _db.SaveChangesAsync();
+		}
+
+		public async Task<List<SocialField>> GetSocial(int authorId = 0)
+		{
+			var socials = new List<SocialField>();
+			var customFields = _db.CustomFields.Where(f => f.Name.StartsWith("social|"));
+
+			if(customFields.Any()){
+				foreach	(CustomField field in customFields){
+					var fieldArray = field.Name.Split('|');
+					if(fieldArray.Length > 2){
+						socials.Add(new SocialField{
+							Title = fieldArray[1].Capitalize(),
+							Icon = $"fa-{fieldArray[1]}",
+							Rank = int.Parse(fieldArray[2]),
+							Id = field.Id,
+							Name = field.Name,
+							AuthorId = field.AuthorId,
+							Content = field.Content
+						});
+					}
+				}
+			}
+			return await Task.FromResult(socials);
+		}
+	}
 }
