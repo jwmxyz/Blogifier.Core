@@ -13,6 +13,7 @@ namespace Blogifier.Core.Data
 		Task SaveCustomValue(string name, string value);
 
 		Task<List<SocialField>> GetSocial(int authorId = 0);
+		Task SaveSocial(SocialField socialField);
 	}
 
 	public class CustomFieldRepository : Repository<CustomField>, ICustomFieldRepository
@@ -102,10 +103,16 @@ namespace Blogifier.Core.Data
 			await _db.SaveChangesAsync();
 		}
 
+		/// <summary>
+		/// This depends on convetion - custom fields must be saved in the common format
+		/// For example: Name = "social|facebook|1" and Content = "http://your.facebook.page.com"
+		/// </summary>
+		/// <param name="authorId">Author ID or 0 if field is blog level</param>
+		/// <returns>List of fields normally used to build social buttons in UI</returns>
 		public async Task<List<SocialField>> GetSocial(int authorId = 0)
 		{
 			var socials = new List<SocialField>();
-			var customFields = _db.CustomFields.Where(f => f.Name.StartsWith("social|"));
+			var customFields = _db.CustomFields.Where(f => f.Name.StartsWith("social|") && f.AuthorId == authorId);
 
 			if(customFields.Any()){
 				foreach	(CustomField field in customFields){
@@ -124,6 +131,26 @@ namespace Blogifier.Core.Data
 				}
 			}
 			return await Task.FromResult(socials);
+		}
+
+		public async Task SaveSocial(SocialField socialField)
+		{
+			var field = _db.CustomFields.Where(f => f.AuthorId == socialField.AuthorId 
+				&& f.Name.ToLower().StartsWith($"social|{socialField.Title.ToLower()}")).FirstOrDefault();
+
+			if (field == null)
+			{
+				_db.CustomFields.Add(new CustomField { 
+					Name = socialField.Name, 
+					Content = socialField.Content, 
+					AuthorId = socialField.AuthorId 
+				});
+			}
+			else
+			{
+				field.Content = socialField.Content;
+			}
+			await _db.SaveChangesAsync();
 		}
 	}
 }

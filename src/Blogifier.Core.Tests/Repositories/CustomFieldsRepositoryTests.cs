@@ -32,8 +32,14 @@ namespace Blogifier.Core.Tests.Repositories
 			var db = GetSut();
 			var sut = new CustomFieldRepository(db);
 
-			sut.Add(new CustomField { AuthorId = 1, Name = "social|facebook|1", Content = "http://your.facebook.page.com" });
-			await db.SaveChangesAsync();
+			await sut.SaveSocial(new SocialField { 
+				AuthorId = 0, 
+				Title = "Facebook", 
+				Icon = "fa-facebook",
+				Name = "social|facebook|1",
+				Rank = 1, 
+				Content = "http://your.facebook.page.com" 
+			});
 
 			var socials = await sut.GetSocial();
 			Assert.NotNull(socials);
