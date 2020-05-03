@@ -130,7 +130,7 @@ namespace Blogifier.Core.Data
 					}
 				}
 			}
-			return await Task.FromResult(socials);
+			return await Task.FromResult(socials.OrderBy(s => s.Rank).ToList());
 		}
 
 		public async Task SaveSocial(SocialField socialField)
@@ -149,6 +149,7 @@ namespace Blogifier.Core.Data
 			else
 			{
 				field.Content = socialField.Content;
+				field.Name = socialField.Name;
 			}
 			await _db.SaveChangesAsync();
 		}
