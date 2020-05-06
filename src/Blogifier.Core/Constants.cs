@@ -17,6 +17,7 @@
         public static string BlogLogo = "blog-logo";
         public static string BlogCover = "blog-cover";
         public static string Culture = "culture";
+        public static string IncludeFeatured = "blog-include-featured";
 
         public static string DummyEmail = "dummy@blog.com";
 

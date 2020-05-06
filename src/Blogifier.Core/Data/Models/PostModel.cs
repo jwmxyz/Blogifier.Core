@@ -13,6 +13,7 @@ namespace Blogifier.Core.Data
         public PostItem Older { get; set; }
         public PostItem Newer { get; set; }
         public string Disqus { get; set; }
+        public string DisqusSite { get; set; }
     }
 
     public class ListModel
@@ -133,7 +134,7 @@ namespace Blogifier.Core.Data
 
         public int CompareTo(CategoryItem other)
         {
-            return Category.CompareTo(other.Category);
+            return Category.ToLower().CompareTo(other.Category.ToLower());
         }
     }
 

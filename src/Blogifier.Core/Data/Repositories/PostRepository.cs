@@ -266,19 +266,19 @@ namespace Blogifier.Core.Data
             {
                 foreach (var p in _db.BlogPosts.Where(p => p.Categories != null && p.Published > DateTime.MinValue))
                 {
-                    var postcats = p.Categories.Split(',');
+                    var postcats = p.Categories.ToLower().Split(',');
                     if (postcats.Any())
                     {
                         foreach (var pc in postcats)
                         {
-                            if (!cats.Exists(c => c.Category == pc))
+                            if (!cats.Exists(c => c.Category.ToLower() == pc.ToLower()))
                             {
                                 cats.Add(new CategoryItem { Category = pc, PostCount = 1 });
                             }
                             else
                             {
                                 // update post count
-                                var tmp = cats.Where(c => c.Category == pc).FirstOrDefault();
+                                var tmp = cats.Where(c => c.Category.ToLower() == pc.ToLower()).FirstOrDefault();
                                 tmp.PostCount++;
                             }
                         }

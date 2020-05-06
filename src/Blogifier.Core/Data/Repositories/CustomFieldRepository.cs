@@ -25,10 +25,36 @@ namespace Blogifier.Core.Data
 			_db = db;
 		}
 
+        #region Basic get/set
+
+        public string GetCustomValue(string name)
+		{
+			var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
+			return field == null ? "" : field.Content;
+		}
+
+		public async Task SaveCustomValue(string name, string value)
+		{
+			var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
+			if (field == null)
+			{
+				_db.CustomFields.Add(new CustomField { Name = name, Content = value, AuthorId = 0 });
+			}
+			else
+			{
+				field.Content = value;
+			}
+			await _db.SaveChangesAsync();
+		}
+
+		#endregion
+
+		#region Blog setttings
+
 		public Task<BlogItem> GetBlogSettings()
 		{
 			var blog = new BlogItem();
-			CustomField title, desc, items, cover, logo, theme, culture;
+			CustomField title, desc, items, cover, logo, theme, culture, includefeatured;
 
 			title = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTitle).FirstOrDefault();
 			desc = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogDescription).FirstOrDefault();
@@ -37,6 +63,7 @@ namespace Blogifier.Core.Data
 			logo = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogLogo).FirstOrDefault();
 			theme = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTheme).FirstOrDefault();
 			culture = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.Culture).FirstOrDefault();
+			includefeatured = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.IncludeFeatured).FirstOrDefault();
 
 			blog.Title = title == null ? "Blog Title" : title.Content;
 			blog.Description = desc == null ? "Short blog description" : desc.Content;
@@ -45,6 +72,7 @@ namespace Blogifier.Core.Data
 			blog.Logo = logo == null ? "admin/img/logo-white.png" : logo.Content;
 			blog.Theme = theme == null ? "Standard" : theme.Content;
 			blog.Culture = culture == null ? "en-US" : culture.Content;
+			blog.IncludeFeatured = includefeatured == null ? false : bool.Parse(includefeatured.Content);
 
 			return Task.FromResult(blog);
 		}
@@ -58,6 +86,7 @@ namespace Blogifier.Core.Data
 			var logo = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogLogo).FirstOrDefault();
 			var culture = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.Culture).FirstOrDefault();
 			var theme = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.BlogTheme).FirstOrDefault();
+			var includefeatured = _db.CustomFields.Where(f => f.AuthorId == 0 && f.Name == Constants.IncludeFeatured).FirstOrDefault();
 
 			if (title == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogTitle, Content = blog.Title });
 			else title.Content = blog.Title;
@@ -80,36 +109,23 @@ namespace Blogifier.Core.Data
 			if (theme == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.BlogTheme, Content = blog.Theme });
 			else theme.Content = blog.Theme;
 
+			if (includefeatured == null) _db.CustomFields.Add(new CustomField { AuthorId = 0, Name = Constants.IncludeFeatured, Content = blog.IncludeFeatured.ToString() });
+			else includefeatured.Content = blog.IncludeFeatured.ToString();
+
 			await _db.SaveChangesAsync();
 		}
 
-		public string GetCustomValue(string name)
-		{
-			var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
-			return field == null ? "" : field.Content;
-		}
+        #endregion
 
-		public async Task SaveCustomValue(string name, string value)
-		{
-			var field = _db.CustomFields.Where(f => f.Name == name).FirstOrDefault();
-			if (field == null)
-			{
-				_db.CustomFields.Add(new CustomField { Name = name, Content = value, AuthorId = 0 });
-			}
-			else
-			{
-				field.Content = value;
-			}
-			await _db.SaveChangesAsync();
-		}
+        #region Social fields
 
-		/// <summary>
-		/// This depends on convetion - custom fields must be saved in the common format
-		/// For example: Name = "social|facebook|1" and Content = "http://your.facebook.page.com"
-		/// </summary>
-		/// <param name="authorId">Author ID or 0 if field is blog level</param>
-		/// <returns>List of fields normally used to build social buttons in UI</returns>
-		public async Task<List<SocialField>> GetSocial(int authorId = 0)
+        /// <summary>
+        /// This depends on convetion - custom fields must be saved in the common format
+        /// For example: Name = "social|facebook|1" and Content = "http://your.facebook.page.com"
+        /// </summary>
+        /// <param name="authorId">Author ID or 0 if field is blog level</param>
+        /// <returns>List of fields normally used to build social buttons in UI</returns>
+        public async Task<List<SocialField>> GetSocial(int authorId = 0)
 		{
 			var socials = new List<SocialField>();
 			var customFields = _db.CustomFields.Where(f => f.Name.StartsWith("social|") && f.AuthorId == authorId);
@@ -153,5 +169,7 @@ namespace Blogifier.Core.Data
 			}
 			await _db.SaveChangesAsync();
 		}
+
+		#endregion
 	}
 }
