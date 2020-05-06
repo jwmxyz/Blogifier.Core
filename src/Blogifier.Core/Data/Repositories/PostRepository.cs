@@ -25,10 +25,12 @@ namespace Blogifier.Core.Data
     public class PostRepository : Repository<BlogPost>, IPostRepository
     {
         AppDbContext _db;
+        ICustomFieldRepository _customFieldRepository;
 
-        public PostRepository(AppDbContext db) : base(db)
+        public PostRepository(AppDbContext db, ICustomFieldRepository customFieldRepository) : base(db)
         {
             _db = db;
+            _customFieldRepository = customFieldRepository;
         }
 
         public async Task<IEnumerable<PostItem>> GetList(Expression<Func<BlogPost, bool>> predicate, Pager pager)
@@ -80,7 +82,7 @@ namespace Blogifier.Core.Data
             var items = new List<PostItem>();
             foreach (var p in posts.Skip(skip).Take(pager.ItemsPerPage).ToList())
             {
-                items.Add(PostToItem(p, sanitize));
+                items.Add(await PostToItem(p, sanitize));
             }
             return await Task.FromResult(items);
         }
@@ -107,7 +109,7 @@ namespace Blogifier.Core.Data
             var items = new List<PostItem>();
             foreach (var p in posts.Skip(skip).Take(pager.ItemsPerPage).ToList())
             {
-                items.Add(PostToItem(p, true));
+                items.Add(await PostToItem(p, true));
             }
             return await Task.FromResult(items);
         }
@@ -140,7 +142,7 @@ namespace Blogifier.Core.Data
 
                 if (rank > 0)
                 {
-                    results.Add(new SearchResult { Rank = rank, Item = PostToItem(p, sanitize) });
+                    results.Add(new SearchResult { Rank = rank, Item = await PostToItem(p, sanitize) });
                 }
             }
 
@@ -158,7 +160,7 @@ namespace Blogifier.Core.Data
         public async Task<PostItem> GetItem(Expression<Func<BlogPost, bool>> predicate, bool sanitize = false)
         {
             var post = _db.BlogPosts.Single(predicate);
-            var item = PostToItem(post);
+            var item = await PostToItem(post);
 
             item.Author.Avatar = string.IsNullOrEmpty(item.Author.Avatar) ? Constants.DefaultAvatar : item.Author.Avatar;
             item.Author.Email = sanitize ? Constants.DummyEmail : item.Author.Email;
@@ -183,16 +185,16 @@ namespace Blogifier.Core.Data
                 {
                     if(all[i].Slug == slug)
                     {
-                        model.Post = PostToItem(all[i]);
+                        model.Post = await PostToItem(all[i]);
 
                         if(i > 0 && all[i - 1].Published > DateTime.MinValue)
                         {
-                            model.Newer = PostToItem(all[i - 1]);
+                            model.Newer = await PostToItem(all[i - 1]);
                         }
 
                         if (i + 1 < all.Count && all[i + 1].Published > DateTime.MinValue)
                         {
-                            model.Older = PostToItem(all[i + 1]);
+                            model.Older = await PostToItem(all[i + 1]);
                         }
 
                         break;
@@ -231,7 +233,7 @@ namespace Blogifier.Core.Data
                 await _db.SaveChangesAsync();
 
                 post = _db.BlogPosts.Single(p => p.Slug == post.Slug);
-                item = PostToItem(post);
+                item = await PostToItem(post);
             }
             else
             {
@@ -288,7 +290,7 @@ namespace Blogifier.Core.Data
             return await Task.FromResult(cats.OrderBy(c => c));
         }
 
-        PostItem PostToItem(BlogPost p, bool sanitize = false)
+        async Task<PostItem> PostToItem(BlogPost p, bool sanitize = false)
         {
             var post = new PostItem
             {
@@ -303,8 +305,10 @@ namespace Blogifier.Core.Data
                 Rating = p.Rating,
                 Published = p.Published,
                 Featured = p.IsFeatured,
-                Author = _db.Authors.Single(a => a.Id == p.AuthorId)
+                Author = _db.Authors.Single(a => a.Id == p.AuthorId),
+                SocialFields = await _customFieldRepository.GetSocial(p.AuthorId)
             };
+
             if(post.Author != null)
             {
                 post.Author.Avatar = string.IsNullOrEmpty(post.Author.Avatar) ?

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Blogifier.Core.Data
 {
@@ -34,5 +35,6 @@ namespace Blogifier.Core.Data
         [StringLength(15)]
         public string Culture { get; set; }
         public bool IncludeFeatured { get; set; }
+        public List<SocialField> SocialFields { get; set; }
     }
 }

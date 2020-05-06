@@ -53,6 +53,7 @@ namespace Blogifier.Core.Data
 
         public Author Author { get; set; }
         public SaveStatus Status { get; set; }
+        public List<SocialField> SocialFields { get; set; }
 
         #region IEquatable
         // to be able compare two posts

@@ -51,7 +51,7 @@ namespace Blogifier.Core.Data
 
 		#region Blog setttings
 
-		public Task<BlogItem> GetBlogSettings()
+		public async Task<BlogItem> GetBlogSettings()
 		{
 			var blog = new BlogItem();
 			CustomField title, desc, items, cover, logo, theme, culture, includefeatured;
@@ -73,8 +73,9 @@ namespace Blogifier.Core.Data
 			blog.Theme = theme == null ? "Standard" : theme.Content;
 			blog.Culture = culture == null ? "en-US" : culture.Content;
 			blog.IncludeFeatured = includefeatured == null ? false : bool.Parse(includefeatured.Content);
+			blog.SocialFields = await GetSocial();
 
-			return Task.FromResult(blog);
+			return await Task.FromResult(blog);
 		}
 
 		public async Task SaveBlogSettings(BlogItem blog)
@@ -130,11 +131,15 @@ namespace Blogifier.Core.Data
 			var socials = new List<SocialField>();
 			var customFields = _db.CustomFields.Where(f => f.Name.StartsWith("social|") && f.AuthorId == authorId);
 
-			if(customFields.Any()){
-				foreach	(CustomField field in customFields){
+			if (customFields.Any())
+			{
+				foreach (CustomField field in customFields)
+				{
 					var fieldArray = field.Name.Split('|');
-					if(fieldArray.Length > 2){
-						socials.Add(new SocialField{
+					if (fieldArray.Length > 2)
+					{
+						socials.Add(new SocialField
+						{
 							Title = fieldArray[1].Capitalize(),
 							Icon = $"fa-{fieldArray[1]}",
 							Rank = int.Parse(fieldArray[2]),

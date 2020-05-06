@@ -55,8 +55,9 @@ namespace Core.Tests.Services
                 .UseSqlite("DataSource=Blog.db").Options;
 
             var context = new AppDbContext(options);
+            var customFieldRepository = new CustomFieldRepository(context);
 
-            IPostRepository posts = new PostRepository(context);
+            IPostRepository posts = new PostRepository(context, customFieldRepository);
             IAuthorRepository authors = new AuthorRepository(context);
             INewsletterRepository letters = new NewsletterRepository(context);
             ICustomFieldRepository custom = new CustomFieldRepository(context);
